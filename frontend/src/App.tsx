@@ -19,8 +19,8 @@ function App() {
       if (lastMessage) {
         console.log(lastMessage);
 
-        if (lastMessage.data && lastMessage.data.includes('server')) {
-          const serverState: ISensors = JSON.parse(`${lastMessage.data}`.split('server: ')[1]);
+        if (lastMessage.data && lastMessage.data.includes('ionizador')) {
+          const serverState: ISensors = JSON.parse(`${lastMessage.data}`);
           setSensorState({ ...serverState });
         }
       }

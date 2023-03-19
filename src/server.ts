@@ -15,7 +15,7 @@ const server = http.createServer(app);
 //initialize the WebSocket server instance
 const wss = new WebSocket.Server({ server });
 
-const sensors: ISensors = { ionizador: { ph: 0, output: undefined, autoStart: { on: false, minValue: 0, maxValue: 0 } } }
+const sensors: ISensors = { ionizador: { ph: 0, output: false, autoStart: { on: false, minValue: 0, maxValue: 0 } } }
 
 wss.on('connection', (ws: WebSocket) => {
 
@@ -27,12 +27,12 @@ wss.on('connection', (ws: WebSocket) => {
 
         try {
             if (message && message.includes('get')) {
-                ws.send(`server: ${JSON.stringify(sensors)}`);
+                ws.send(`${JSON.stringify(sensors)}`);
             }
             else if (message && message.includes('update')) {
                 const newValues: ISensors = JSON.parse(`${message}`.split(': ')[1]);
                 sensors.ionizador = newValues.ionizador;
-                ws.send(`server: ${JSON.stringify(sensors)}`);
+                ws.send(`${JSON.stringify(sensors)}`);
             }
             else
                 ws.send(`Hello, you sent -> ${message}`);
@@ -44,7 +44,7 @@ wss.on('connection', (ws: WebSocket) => {
 
     //send immediatly a feedback to the incoming connection    
     ws.send('Connectado ao servidor');
-    ws.send(`server: ${JSON.stringify(sensors)}`);
+    ws.send(`${JSON.stringify(sensors)}`);
 });
 
 //start our server
