@@ -1,0 +1,3 @@
+const char* ssid = "NET_2GAC791F_EXT_2.4G";               //Enter SSID  casa NET_2GAC791F_EXT_2.4G
+const char* password = "DDAC791F";                        //Enter Password - casa DDAC791F
+const char* websockets_server = "http://localhost:3000";  //server adress and port
