@@ -1,9 +1,13 @@
 import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
+import { ISensors } from '../frontend/src/types/ISensors';
 
 const app = express();
-const port = 3333;
+const port = 3332;
+
+// update: {"ionizador":{"ph":2, "output":false, "autoStart":{"on":false,"minValue":0,"maxValue":0}}}
+
 
 //initialize a simple http server
 const server = http.createServer(app);
@@ -11,44 +15,36 @@ const server = http.createServer(app);
 //initialize the WebSocket server instance
 const wss = new WebSocket.Server({ server });
 
-let sensorValue = 0;
-
-let outputOn: boolean | undefined;
+const sensors: ISensors = { ionizador: { ph: 0, output: undefined, autoStart: { on: false, minValue: 0, maxValue: 0 } } }
 
 wss.on('connection', (ws: WebSocket) => {
- 
+
     //connection is up, let's add a simple simple event
     ws.on('message', (message: string) => {
 
         //log the received message and send it back to the client
         console.log('received: %s', message);
 
-        if(message && message.includes('frontend')){
-
-            const msg = `${message}`.split(': ')[1];
-
-            if(msg === 'false') outputOn = true;
-            else if(msg === 'true') outputOn = false;
-
-            ws.send(`sensor: ${sensorValue},${outputOn}`);
-        }
-        else if(message && message.includes('sensor')){
-            const msg = `${message}`.split(': ')[1];
-            
-            sensorValue = +msg.split(',')[0];
-
-            if(outputOn === undefined){
-                outputOn = msg.split(',')[1] === 'true';
+        try {
+            if (message && message.includes('get')) {
+                ws.send(`server: ${JSON.stringify(sensors)}`);
             }
-            
-            ws.send(`${outputOn}`);
+            else if (message && message.includes('update')) {
+                const newValues: ISensors = JSON.parse(`${message}`.split(': ')[1]);
+                sensors.ionizador = newValues.ionizador;
+                ws.send(`server: ${JSON.stringify(sensors)}`);
+            }
+            else
+                ws.send(`Hello, you sent -> ${message}`);
+
+        } catch (error) {
+            console.log(error);
         }
-        else
-        ws.send(`Hello, you sent -> ${message}`);
     });
 
     //send immediatly a feedback to the incoming connection    
-    ws.send('Hi there, I am a WebSocket server');
+    ws.send('Connectado ao servidor');
+    ws.send(`server: ${JSON.stringify(sensors)}`);
 });
 
 //start our server
