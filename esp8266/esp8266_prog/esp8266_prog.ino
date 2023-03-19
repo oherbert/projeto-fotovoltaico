@@ -3,11 +3,13 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "NET_2GAC791F_EXT_2.4G";  // Enter SSID  casa NET_2GAC791F_EXT_2.4G
-const char *password = "DDAC791F";           // Enter Password - casa DDAC791F
+// const char *ssid = "NET_2GAC791F_EXT_2.4G";  // Enter SSID  casa NET_2GAC791F_EXT_2.4G
+const char *ssid = "Casa";  // Enter SSID  casa NET_2GAC791F_EXT_2.4G
+// const char *password = "DDAC791F";           // Enter Password - casa DDAC791F
+const char *password = "40315003863";           // Enter Password - casa DDAC791F
 
-const char *websockets_server_host = "192.168.0.6";  // Enter server adress
-const uint16_t websockets_server_port = 3333;        // Enter server port
+const char *websockets_server_host = "192.168.0.5";  // Enter server adress
+const uint16_t websockets_server_port = 3332;        // Enter server port
 
 char json[] = "{\"ionizador\":{\"ph\":0,\"output\":false,\"autoStart\":{\"on\":false,\"minValue\":0,\"maxValue\":0}},\"placaSolar\":{\"tensaoEntrada\":0,\"tensaoRebaixada\":0},\"client\":\"sensor\"}";
 
@@ -29,7 +31,7 @@ void tryConnect() {
 void updateServer() {
   String jsonString;
   serializeJson(sensor, jsonString);
-  client.send(jsonString);
+  client.send("update: " + jsonString);
   // client.send("update: {ionizador:{ph:" + String(leitura) + ", output:" + FALSE + ", autoStart:{on:false,minValue:0,maxValue:0}}}");
 }
 
@@ -42,7 +44,7 @@ void setup() {
 
   // Test if parsing succeeds.
   if (error) {
-    Serial.print(F("deserializeJson() failed: "));
+    Serial.print(F(" 47 - DeserializeJson() failed: "));
     Serial.println(error.f_str());
     return;
   }
@@ -77,7 +79,7 @@ void setup() {
 
     // Test if parsing succeeds.
     if (error) {
-      Serial.print(F("deserializeJson() failed: "));
+      Serial.print(F("82 - DeserializeJson() failed: "));
       Serial.println(error.f_str());
       return;
     }
@@ -97,7 +99,7 @@ void setup() {
 void loop() {
   // let the websockets client check for incoming messages
   float leitura = (analogRead(A0) * 3.3 / 1023);
-  sensor["ionizador"]["ph"] = leitura;
+  sensor["ionizador"]["ph"] =  ceilf(leitura * 100) / 100;
   if (client.available()) {
     client.poll();
     updateServer();
@@ -106,5 +108,5 @@ void loop() {
   }
 
   Serial.println(leitura);
-  delay(3000);
+  delay(5000);
 }

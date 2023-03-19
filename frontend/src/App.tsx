@@ -39,9 +39,9 @@ function App() {
         <h1 className="header">Purificador e Phmetro de água</h1>
 
         <Container className='info-conteiner'>
-          <p className='p-info'>Leitura Phmetro: <strong>{sensorState.ionizador.ph}</strong></p>
-          <p className='p-info'>Tensão de entrada Placa Solar: <strong>{sensorState.placaSolar.tensaoEntrada}</strong></p>
-          <p className='p-info'>Tensão de regulada Placa Solar: <strong>{sensorState.placaSolar.tensaoRebaixada}</strong></p>
+          <p className='p-info'>Leitura Phmetro: <strong>{sensorState.ionizador.ph.toFixed(2)}</strong></p>
+          <p className='p-info'>Tensão de entrada Placa Solar: <strong>{sensorState.placaSolar.tensaoEntrada.toFixed(2)}</strong></p>
+          <p className='p-info'>Tensão de regulada Placa Solar: <strong>{sensorState.placaSolar.tensaoRebaixada.toFixed(2)}</strong></p>
         </Container>
 
         <Container>
@@ -100,7 +100,7 @@ function App() {
             />
           </div>
         </Container>
-        <p>{JSON.stringify(lastMessage?.data)}</p>
+        {/* <p>{JSON.stringify(lastMessage?.data)}</p> */}
       </Container>
     </Container >
   );
