@@ -1,26 +1,28 @@
 import './App.css';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import useWebSocket from 'react-use-websocket';
 import { ISensors } from './types/ISensors';
 
 
 const inicialSensors: ISensors = {
-  ionizador: { ph: 0, output: undefined, autoStart: { on: false, minValue: 0, maxValue: 0 } }
+  ionizador: { ph: 0, output: undefined, autoStart: { on: false, minValue: 0, maxValue: 0 } },
+  placaSolar: { tensaoEntrada: 0, tensaoRebaixada: 0 },
+  client: "frontend",
 }
 
 function App() {
   const [sensorState, setSensorState] = useState<ISensors>(inicialSensors);
-  let timer: NodeJS.Timer | undefined;
 
   const { lastMessage, sendMessage } = useWebSocket('ws://192.168.0.5:3332', {
     onOpen: () => { console.log(`Connected to App WS`); sendMessage(`get`) },
-    onMessage: () => {
-      if (lastMessage) {
-        console.log(lastMessage);
+    onMessage: (msg) => {
+      if (msg) {
+        console.log(msg);
 
-        if (lastMessage.data && lastMessage.data.includes('ionizador')) {
-          const serverState: ISensors = JSON.parse(`${lastMessage.data}`);
+        if (msg.data && msg.data.includes('ionizador')) {
+          const serverState: ISensors = JSON.parse(`${msg.data}`);
+          serverState.client = sensorState.client;
           setSensorState({ ...serverState });
         }
       }
@@ -28,34 +30,77 @@ function App() {
     // queryParams: { 'token': '123456' },
     onError: (event) => { console.error(event); },
     shouldReconnect: (closeEvent) => true,
-    reconnectInterval: 3000
+    reconnectInterval: 3000,
   });
-
-  useEffect(() => {
-    if (timer !== undefined) return;
-    timer = setInterval(() => sendMessage(`get`), 3000)
-    return () => clearInterval(timer)
-  }, []);
-
 
   return (
     <Container className="p-3">
       <Container className="p-5 mb-4 bg-light rounded-3" style={{ alignContent: 'center', alignItems: 'center' }}>
         <h1 className="header">Purificador e Phmetro de água</h1>
 
-        <p>Leitura Phmetro: <strong>{sensorState.ionizador.ph}</strong></p>
+        <Container className='info-conteiner'>
+          <p className='p-info'>Leitura Phmetro: <strong>{sensorState.ionizador.ph}</strong></p>
+          <p className='p-info'>Tensão de entrada Placa Solar: <strong>{sensorState.placaSolar.tensaoEntrada}</strong></p>
+          <p className='p-info'>Tensão de regulada Placa Solar: <strong>{sensorState.placaSolar.tensaoRebaixada}</strong></p>
+        </Container>
+
         <Container>
           <span>Estado do Ionizador: </span>
           <button className={sensorState.ionizador.output ? "btn btn-primary" : "btn btn-danger"} type="button" onClick={() => {
             const newState = sensorState;
             newState.ionizador.output = !newState.ionizador.output;
             sendMessage(`update: ${JSON.stringify(newState)}`)
-            setSensorState(newState);
-          }}>
+            setSensorState({ ...newState });
+          }}
+            disabled={sensorState.ionizador.autoStart.on}
+          >
             {sensorState.ionizador.output && <span className="spinner-grow spinner-grow-sm" role="status" aria-hidden={true}></span>}
             {sensorState.ionizador.output ? ' Puricando...' : ' Inativo'}
           </button>
+          <div className="form-check form-switch">
+            <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" checked={sensorState.ionizador.autoStart.on} onChange={() => {
+              const newState = sensorState;
+              newState.ionizador.autoStart.on = !newState.ionizador.autoStart.on;
+
+              sendMessage(`update: ${JSON.stringify(newState)}`)
+              setSensorState({ ...newState });
+            }} />
+            <label className="form-check-label">Auto Start</label>
+          </div>
+          <h4>
+            Range de funcionamento automático
+          </h4>
+          <div className="input-group mb-3">
+            <span className="input-group-text" id="basic-addon1">Mímino</span>
+            <input type="number" min={0} step={0.1}
+              className="form-control input-control"
+              placeholder="Valor mínimo" aria-label="Minimo" aria-describedby="basic-addon1"
+              value={sensorState.ionizador.autoStart.minValue}
+              onChange={(e) => {
+                const newState = sensorState;
+                newState.ionizador.autoStart.minValue = + e.target.value;
+                setSensorState({ ...newState });
+              }}
+              onBlur={(() => sendMessage(`update: ${JSON.stringify(sensorState)}`))}
+            />
+            <span className='input-odd' />
+            <span className="input-group-text" id="basic-addon1">Máximo</span>
+            <input type="number"
+              min={0} step={0.1}
+              className="form-control input-control" placeholder="Valor máximo"
+              aria-label="Maximo"
+              aria-describedby="basic-addon1"
+              value={sensorState.ionizador.autoStart.maxValue}
+              onChange={(e) => {
+                const newState = sensorState;
+                newState.ionizador.autoStart.maxValue = + e.target.value;
+                setSensorState({ ...newState });
+              }}
+              onBlur={(() => sendMessage(`update: ${JSON.stringify(sensorState)}`))}
+            />
+          </div>
         </Container>
+        <p>{JSON.stringify(lastMessage?.data)}</p>
       </Container>
     </Container >
   );

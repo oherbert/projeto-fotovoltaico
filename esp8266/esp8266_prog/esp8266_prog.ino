@@ -9,7 +9,7 @@ const char *password = "DDAC791F";           // Enter Password - casa DDAC791F
 const char *websockets_server_host = "192.168.0.6";  // Enter server adress
 const uint16_t websockets_server_port = 3333;        // Enter server port
 
-char json[] = "{\"ionizador\":{\"ph\":0.0,\"output\":false,\"autoStart\":{\"on\":false,\"minValue\":0,\"maxValue\":0}}}";
+char json[] = "{\"ionizador\":{\"ph\":0,\"output\":false,\"autoStart\":{\"on\":false,\"minValue\":0,\"maxValue\":0}},\"placaSolar\":{\"tensaoEntrada\":0,\"tensaoRebaixada\":0},\"client\":\"sensor\"}";
 
 DynamicJsonDocument sensor(1024);
 
@@ -82,12 +82,12 @@ void setup() {
       return;
     }
 
-    if (sensorServer["output"]) {
-      sensor["output"] = sensorServer["output"];
+    if (sensorServer["ionizador"]["output"]) {
+      sensor["ionizador"]["output"] = sensorServer["ionizador"]["output"];
       digitalWrite(D0, HIGH);
       Serial.print("high");
     } else {
-      sensor["output"] = sensorServer["output"];
+      sensor["ionizador"]["output"] = sensorServer["ionizador"]["output"];
       digitalWrite(D0, LOW);
       Serial.print("low");
     }
@@ -97,7 +97,7 @@ void setup() {
 void loop() {
   // let the websockets client check for incoming messages
   float leitura = (analogRead(A0) * 3.3 / 1023);
-  sensor["ph"] = leitura;
+  sensor["ionizador"]["ph"] = leitura;
   if (client.available()) {
     client.poll();
     updateServer();
