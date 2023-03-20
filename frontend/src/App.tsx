@@ -1,5 +1,5 @@
 import './App.css';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import useWebSocket from 'react-use-websocket';
 import { ISensors } from './types/ISensors';
@@ -13,6 +13,9 @@ const inicialSensors: ISensors = {
 
 function App() {
   const [sensorState, setSensorState] = useState<ISensors>(inicialSensors);
+  const componentFocus = useRef<null | 'min' | 'max'>(null);
+  const [minVal, setMinVal] = useState('');
+  const [maxVal, setMaxVal] = useState('');
 
   const { lastMessage, sendMessage } = useWebSocket('ws://192.168.0.5:3332', {
     onOpen: () => { console.log(`Connected to App WS`); sendMessage(`get`) },
@@ -32,6 +35,20 @@ function App() {
     shouldReconnect: (closeEvent) => true,
     reconnectInterval: 3000,
   });
+
+  useEffect(() => {
+    if (componentFocus.current !== 'min') {
+      setMinVal(`${sensorState.ionizador.autoStart.minValue}`);
+    }
+    if (componentFocus.current !== 'max') {
+      setMaxVal(`${sensorState.ionizador.autoStart.maxValue}`);
+    }
+    if (!componentFocus.current) {
+      setMinVal(`${sensorState.ionizador.autoStart.minValue}`);
+      setMaxVal(`${sensorState.ionizador.autoStart.maxValue}`);
+    }
+
+  }, [sensorState]);
 
   return (
     <Container className="p-3">
@@ -68,35 +85,50 @@ function App() {
             <label className="form-check-label">Auto Start</label>
           </div>
           <h4>
-            Range de funcionamento automático
+            Faixa de funcionamento automático
           </h4>
           <div className="input-group mb-3">
-            <span className="input-group-text" id="basic-addon1">Mímino</span>
+            <span className="input-group-text" id="basic-addon1">Mín.</span>
             <input type="number" min={0} step={0.1}
               className="form-control input-control"
               placeholder="Valor mínimo" aria-label="Minimo" aria-describedby="basic-addon1"
-              value={sensorState.ionizador.autoStart.minValue}
+              value={minVal}
               onChange={(e) => {
-                const newState = sensorState;
-                newState.ionizador.autoStart.minValue = + e.target.value;
-                setSensorState({ ...newState });
+                setMinVal(e.target.value);
               }}
-              onBlur={(() => sendMessage(`update: ${JSON.stringify(sensorState)}`))}
+              onFocus={() => {
+                componentFocus.current = 'min'
+              }}
+              onBlur={(() => {
+                const newState = sensorState;
+                newState.ionizador.autoStart.minValue = + minVal;
+                setSensorState({ ...newState });
+                sendMessage(`update: ${JSON.stringify(newState)}`);
+                componentFocus.current = null;
+              })}
             />
             <span className='input-odd' />
-            <span className="input-group-text" id="basic-addon1">Máximo</span>
+            <span className="input-group-text" id="basic-addon1">Máx.</span>
             <input type="number"
-              min={0} step={0.1}
+              min={0}
+              step={0.1}
               className="form-control input-control" placeholder="Valor máximo"
               aria-label="Maximo"
               aria-describedby="basic-addon1"
-              value={sensorState.ionizador.autoStart.maxValue}
+              value={maxVal}
               onChange={(e) => {
-                const newState = sensorState;
-                newState.ionizador.autoStart.maxValue = + e.target.value;
-                setSensorState({ ...newState });
+                setMaxVal(e.target.value);
               }}
-              onBlur={(() => sendMessage(`update: ${JSON.stringify(sensorState)}`))}
+              onFocus={() => {
+                componentFocus.current = 'max'
+              }}
+              onBlur={(() => {
+                const newState = sensorState;
+                newState.ionizador.autoStart.maxValue = +maxVal;
+                setSensorState({ ...newState });
+                sendMessage(`update: ${JSON.stringify(newState)}`);
+                componentFocus.current = null;
+              })}
             />
           </div>
         </Container>
