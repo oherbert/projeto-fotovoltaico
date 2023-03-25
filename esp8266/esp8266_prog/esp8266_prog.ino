@@ -3,12 +3,12 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 
-// const char *ssid = "NET_2GAC791F_EXT_2.4G";  // Enter SSID  casa NET_2GAC791F_EXT_2.4G
-const char *ssid = "Casa";  // Enter SSID  casa NET_2GAC791F_EXT_2.4G
-// const char *password = "DDAC791F";           // Enter Password - casa DDAC791F
-const char *password = "40315003863";           // Enter Password - casa DDAC791F
+const char *ssid = "LAPTOP-HJVF3GRD 6182";  // Enter SSID  casa NET_2GAC791F_EXT_2.4G
+// const char *ssid = "Casa";  // Enter SSID  casa NET_2GAC791F_EXT_2.4G
+const char *password = "placa123";           // Enter Password - casa DDAC791F
+// const char *password = "40315003863";           // Enter Password - casa DDAC791F
 
-const char *websockets_server_host = "192.168.0.5";  // Enter server adress
+const char *ipComputador = "192.168.137.1";  // Enter server adress
 const uint16_t websockets_server_port = 3332;        // Enter server port
 
 char json[] = "{\"ionizador\":{\"ph\":0,\"output\":false,\"autoStart\":{\"on\":false,\"minValue\":0,\"maxValue\":0}},\"placaSolar\":{\"tensaoEntrada\":0,\"tensaoRebaixada\":0},\"client\":\"sensor\"}";
@@ -19,7 +19,7 @@ using namespace websockets;
 WebsocketsClient client;
 
 void tryConnect() {
-  bool connected = client.connect(websockets_server_host, websockets_server_port, "/");
+  bool connected = client.connect(ipComputador, websockets_server_port, "/");
   if (connected) {
     Serial.println("Cliente Esp conectado!");
     client.send("Olá Server: ESP8266 conectando.");

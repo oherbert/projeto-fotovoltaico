@@ -15,7 +15,9 @@
   },
   "scripts": {
     "start": "tsx src/server.ts",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src",
+    "deploy-start": "pm2 start ecosystem.config.js && pm2 save"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@types/express": "^4.17.17",
     "@types/ws": "^8.5.4",
+    "tsup": "^6.7.0",
     "tsx": "^3.12.5",
     "typescript": "^5.0.2"
   }

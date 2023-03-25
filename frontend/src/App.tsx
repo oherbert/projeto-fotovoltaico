@@ -5,6 +5,10 @@ import useWebSocket from 'react-use-websocket';
 import { ISensors } from './types/ISensors';
 
 
+const computadorIp = "192.168.137.1";
+const ws = "ws://";
+const port = ":3332"
+
 const inicialSensors: ISensors = {
   ionizador: { ph: 0, output: undefined, autoStart: { on: false, minValue: 0, maxValue: 0 } },
   placaSolar: { tensaoEntrada: 0, tensaoRebaixada: 0 },
@@ -17,7 +21,7 @@ function App() {
   const [minVal, setMinVal] = useState('');
   const [maxVal, setMaxVal] = useState('');
 
-  const { lastMessage, sendMessage } = useWebSocket('ws://192.168.0.5:3332', {
+  const { lastMessage, sendMessage } = useWebSocket(ws + computadorIp + port, {
     onOpen: () => { console.log(`Connected to App WS`); sendMessage(`get`) },
     onMessage: (msg) => {
       if (msg) {
